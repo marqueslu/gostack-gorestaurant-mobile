@@ -103,6 +103,10 @@ const FoodDetails: React.FC = () => {
   }
 
   function handleDecrementExtra(id: number): void {
+    const extraToDecrement = extras.find(extra => extra.id === id);
+
+    if(extraToDecrement?.quantity === 0) return;
+
     setExtras(oldExtras =>
       oldExtras.map(extra =>
         extra.id === id ? { ...extra, quantity: extra.quantity - 1 } : extra,
@@ -115,10 +119,32 @@ const FoodDetails: React.FC = () => {
   }
 
   function handleDecrementFood(): void {
-    setFoodQuantity(quantity => quantity - 1);
+    if(foodQuantity > 1) {
+      setFoodQuantity(quantity => quantity - 1);
+    }
   }
 
-  const toggleFavorite = useCallback(() => {
+  const toggleFavorite = useCallback(async () => {
+    try {
+      if(isFavorite) {
+        await api.delete(`favoreites/${routeParams.id}`);
+      } else {
+        const newFavorite = {
+          id: food.id,
+          name: food.name,
+          description: food.description,
+          price: food.price,
+          category: food.category,
+          thumbnail_url: food.image_url,
+          extras: food.extras
+        };
+
+        await api.post('favorites', newFavorite);
+      }
+    } catch(err) {
+      Alert.alert('Erro ao tentar favoritar prato, tente novamente');
+    }
+
     setIsFavorite(!isFavorite);
   }, [isFavorite]);
 
